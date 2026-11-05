@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0c0818">
+<meta name="description" content="Starfall Chronicle - an original top-down pixel-art action RPG in your browser. 35 weapons, a blacksmith, 3 bosses, a 3-act story.">
+<title>Starfall Chronicle</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230c0818'/%3E%3Cpath d='M8 1l2 5h5l-4 3 2 6-5-4-5 4 2-6-4-3h5z' fill='%23ffd34a'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#0c0818;--pn:#170f2bf2;--p2:#241a40;--bd:#ffd34a;--tx:#f4ecff;--mu:#a89cc8;--cy:#7af0ff;--rd:#ff5a6a}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font:14px/1.45 ui-monospace,"Cascadia Mono",Menlo,Consolas,monospace;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+#game{position:fixed;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.btn{background:linear-gradient(#3a2a60,#2a1d48);border:2px solid #6a55a0;padding:8px 14px;border-radius:3px;font-weight:700;letter-spacing:.5px;box-shadow:0 3px 0 #0a0614;transition:transform .08s,border-color .15s}
+.btn:hover{border-color:var(--bd)}.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #0a0614}.btn.gold{background:linear-gradient(#ffd34a,#d89a1a);color:#2a1a08;border-color:#fff2b0}
+.btn:disabled{opacity:.4;cursor:default}
+.ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:30;padding:10px}.ov.on{display:flex}
+.panel{background:var(--pn);border:2px solid var(--bd);box-shadow:0 0 0 3px #0a0614,0 10px 40px #000a;border-radius:4px;width:100%;max-width:760px;max-height:100%;display:flex;flex-direction:column;overflow:hidden}
+.ph{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:2px solid #3a2c60;background:#1e1438}.ph h2{flex:1;font-size:16px;color:var(--bd);letter-spacing:1px}
+.x{width:32px;height:32px;border:2px solid #6a55a0;border-radius:3px;font-weight:900}
+.tabs{display:flex;gap:4px;padding:6px 8px 0;flex-wrap:wrap}.tab{padding:6px 10px;border:2px solid #3a2c60;border-bottom:0;border-radius:3px 3px 0 0;color:var(--mu);font-weight:700;font-size:13px}.tab.on{background:var(--p2);color:var(--bd);border-color:var(--bd)}
+.pb{padding:10px;overflow:auto;flex:1;background:var(--p2);border-top:2px solid #3a2c60;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#title{z-index:40;background:radial-gradient(ellipse at 50% 120%,#3a1a5a 0,#0c0818 60%);flex-direction:column;text-align:center;overflow:hidden}
+#title .stars{position:absolute;inset:0;background-image:radial-gradient(1px 1px at 20% 30%,#fff,transparent),radial-gradient(1px 1px at 70% 20%,#fff,transparent),radial-gradient(2px 2px at 40% 70%,#ffd34a,transparent),radial-gradient(1px 1px at 85% 60%,#7af0ff,transparent),radial-gradient(1px 1px at 10% 80%,#fff,transparent),radial-gradient(1px 1px at 55% 45%,#c07aff,transparent);background-size:240px 240px;animation:tw 6s linear infinite;opacity:.8}
+@keyframes tw{to{background-position:0 240px}}
+#title .fall{position:absolute;top:-10%;left:70%;width:4px;height:90px;background:linear-gradient(transparent,#fff6c8);transform:rotate(35deg);animation:fall 3.2s ease-in infinite;filter:drop-shadow(0 0 6px #ffd34a)}
+@keyframes fall{0%{top:-20%;left:80%;opacity:0}20%{opacity:1}70%{top:60%;left:35%;opacity:0}100%{opacity:0}}
+.logo{position:relative;font-size:clamp(30px,8vw,64px);font-weight:900;letter-spacing:3px;line-height:1;color:#fff6c8;text-shadow:0 0 18px #ffd34a,3px 3px 0 #6a3aa0,6px 6px 0 #140c1c}
+.logo small{display:block;font-size:.42em;letter-spacing:10px;color:var(--cy);text-shadow:0 0 10px #7af0ff,2px 2px 0 #140c1c;margin-top:10px}
+.menu{position:relative;display:flex;flex-direction:column;gap:10px;margin-top:28px;width:min(280px,90vw)}
+.tag{position:relative;color:var(--mu);margin-top:14px;font-size:12px}
+#hud{position:fixed;left:0;top:0;right:0;z-index:10;pointer-events:none;display:none;padding:max(6px,env(safe-area-inset-top)) 8px 0}
+.stat{display:flex;gap:6px;align-items:flex-start}
+.lv{width:38px;height:38px;border:2px solid var(--bd);background:#140c1c;border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:15px;line-height:1}.lv small{font-size:8px;color:var(--mu)}
+.bars{display:flex;flex-direction:column;gap:2px;width:min(170px,42vw)}
+.bar{height:9px;background:#140c1c;border:1px solid #000;position:relative;overflow:hidden;border-radius:2px}.bar i{position:absolute;inset:0;width:100%;transform-origin:left;display:block}
+.bar b{position:absolute;right:3px;top:-3px;font-size:9px;text-shadow:1px 1px 0 #000}
+#hp i{background:linear-gradient(#ff7a7a,#c82a3a)}#st i{background:linear-gradient(#b0ff8a,#3aa03a)}#mp i{background:linear-gradient(#8ac8ff,#3a5ad0)}#xp{height:4px}#xp i{background:#ffd34a}
+.res{font-size:11px;margin-top:3px;display:flex;gap:8px;text-shadow:1px 1px 0 #000;flex-wrap:wrap}
+#mbtn{position:fixed;top:max(6px,env(safe-area-inset-top));right:8px;z-index:12;width:40px;height:40px;border:2px solid var(--bd);background:#140c1cd0;border-radius:3px;font-size:18px;display:none}
+#boss{position:fixed;top:52px;left:50%;transform:translateX(-50%);width:min(420px,70vw);z-index:10;display:none;text-align:center;pointer-events:none}
+#boss div{font-weight:900;color:#ffb0c0;text-shadow:2px 2px 0 #000;font-size:13px;letter-spacing:1px}#boss .bar{height:12px;border:2px solid #ffd34a}#boss i{background:linear-gradient(#ff5a8a,#a01a4a)}
+#toasts{position:fixed;top:96px;left:50%;transform:translateX(-50%);z-index:15;display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;width:94vw}
+.toast{background:#140c1ce0;border:1px solid #4a3a70;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:700;animation:tin .25s ease-out;text-align:center;max-width:100%}
+@keyframes tin{from{transform:translateY(-8px) scale(.9);opacity:0}}
+#banner{position:fixed;top:30%;left:0;right:0;text-align:center;z-index:9;pointer-events:none;opacity:0;transition:opacity .6s}
+#banner b{display:block;font-size:clamp(20px,5vw,34px);color:#fff6c8;text-shadow:0 0 14px #ffd34a,3px 3px 0 #140c1c;letter-spacing:2px}#banner span{color:var(--cy);font-size:12px;letter-spacing:4px}
+#hint{position:fixed;bottom:22%;left:50%;transform:translateX(-50%);z-index:10;background:#140c1cd8;border:2px solid var(--bd);padding:4px 10px;border-radius:3px;font-size:12px;font-weight:700;display:none;pointer-events:none;white-space:nowrap}
+#dlg{position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(680px,96vw);z-index:25;display:none}
+#dlg .panel{padding:12px 14px;cursor:pointer}#dlg .sp{color:var(--bd);font-weight:900;margin-bottom:4px}#dlg .t{min-height:3em;font-size:15px}
+#dlg .ch{display:flex;flex-direction:column;gap:6px;margin-top:10px}#dlg .ch button{text-align:left}#dlg .nx{float:right;color:var(--mu);font-size:11px;animation:bl 1s infinite}@keyframes bl{50%{opacity:.3}}
+.inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:5px}
+.cell{aspect-ratio:1;background:#140c1c;border:2px solid #444;border-radius:3px;position:relative;display:flex;align-items:center;justify-content:center}
+.cell img,.ic{width:32px;height:32px;image-rendering:pixelated}.cell.sel{outline:2px solid #fff;outline-offset:1px}.cell .e{position:absolute;top:0;left:2px;font-size:9px;color:var(--bd);font-weight:900}.cell .p{position:absolute;bottom:0;right:2px;font-size:9px;font-weight:900}
+.det{margin-top:10px;background:#140c1c;border:2px solid #3a2c60;border-radius:3px;padding:10px;min-height:90px}.det h3{font-size:15px}.det .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.mu{color:var(--mu);font-size:12px}.aff{color:var(--cy);font-size:12px}.up{color:#7f7}.dn{color:#f77}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:560px){.grid2{grid-template-columns:1fr}}
+.srow{display:flex;align-items:center;gap:8px;padding:6px;background:#140c1c;border-radius:3px;margin-bottom:5px}.srow b{width:44px;color:var(--bd)}.srow span{flex:1;font-size:12px}.srow .btn{padding:2px 10px}
+.tree{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.br h4{text-align:center;color:var(--bd);margin-bottom:6px}
+.node{display:block;width:100%;text-align:left;background:#140c1c;border:2px solid #3a2c60;border-radius:3px;padding:6px;margin-bottom:6px;font-size:11px;line-height:1.3}.node b{display:block;font-size:12px}.node.own{border-color:#7f7;background:#132a1a}.node.can{border-color:var(--bd)}.node.act{box-shadow:0 0 0 2px var(--cy)}
+@media(max-width:560px){.tree{grid-template-columns:1fr}}
+.q{background:#140c1c;border-left:4px solid var(--bd);padding:8px;margin-bottom:8px;border-radius:2px}.q.done{border-color:#7f7;opacity:.7}.q h4{color:var(--bd)}
+.shopr{display:flex;align-items:center;gap:8px;padding:6px;background:#140c1c;border-radius:3px;margin-bottom:5px}.shopr div{flex:1;min-width:0}.shopr .btn{padding:4px 10px;white-space:nowrap}
+.slot{display:flex;align-items:center;gap:10px;padding:8px;background:#140c1c;border:2px solid #3a2c60;border-radius:3px;margin-bottom:6px;width:100%;text-align:left}.slot:hover{border-color:var(--bd)}
+#loot{position:fixed;right:10px;top:110px;z-index:16;background:#140c1cf0;border:2px solid;border-radius:4px;padding:8px 10px;display:none;gap:8px;align-items:center;max-width:70vw;animation:tin .3s}
+#touch{position:fixed;inset:0;z-index:11;display:none;pointer-events:none}
+#stickz{position:absolute;left:0;bottom:0;width:50%;height:46%;pointer-events:auto}
+#stick{position:absolute;width:110px;height:110px;margin:-55px;border-radius:50%;border:2px solid #ffffff40;background:#ffffff10;display:none}#knob{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px;border-radius:50%;background:#ffd34a90;border:2px solid #fff6c8}
+.tb{position:absolute;pointer-events:auto;border-radius:50%;border:2px solid #ffffff60;background:#140c1c90;font-weight:900;font-size:11px;color:#fff;display:flex;align-items:center;justify-content:center}
+.tb.dn{background:#ffd34a90;color:#140c1c}
+#tAtk{right:22px;bottom:calc(40px + env(safe-area-inset-bottom));width:84px;height:84px;font-size:14px;border-color:#ffd34a}
+#tDodge{right:114px;bottom:calc(28px + env(safe-area-inset-bottom));width:60px;height:60px}#tSkill{right:30px;bottom:calc(134px + env(safe-area-inset-bottom));width:56px;height:56px;border-color:#8ac8ff}
+#tUse{right:98px;bottom:calc(104px + env(safe-area-inset-bottom));width:52px;height:52px;border-color:#7f7}#tPot{right:162px;bottom:calc(98px + env(safe-area-inset-bottom));width:46px;height:46px;border-color:#f77}
+#help p,#help li{margin-bottom:6px;font-size:13px}#help ul{padding-left:18px}kbd{background:#140c1c;border:1px solid #6a55a0;border-radius:3px;padding:0 5px;color:var(--bd);font-size:12px}
+.end{max-width:560px;text-align:center;padding:20px}.end h1{color:#fff6c8;text-shadow:0 0 14px #ffd34a;margin-bottom:12px}.end p{margin-bottom:10px}
+</style>
+</head>
+<body>
+<canvas id="game" aria-label="Starfall Chronicle game canvas"></canvas>
+<div id="hud"><div class="stat"><div class="lv"><small>LV</small><span id="hLv">1</span></div><div class="bars"><div class="bar" id="hp"><i></i><b></b></div><div class="bar" id="st"><i></i></div><div class="bar" id="mp"><i></i><b></b></div><div class="bar" id="xp"><i></i></div>
+<div class="res"><span id="hG">0</span><span id="hP">0</span><span id="hO">0</span><span id="hS"></span></div></div></div></div>
+<button id="mbtn" aria-label="Menu">&#9776;</button>
+<div id="boss"><div id="bossN"></div><div class="bar"><i></i></div></div>
+<div id="toasts"></div><div id="banner"><b></b><span></span></div><div id="hint"></div><div id="loot"></div>
+<div id="dlg"><div class="panel"><div class="sp"></div><div class="t"></div><div class="ch"></div><div class="nx">&#9660; continue</div></div></div>
+<div id="touch"><div id="stickz"><div id="stick"><div id="knob"></div></div></div>
+<button class="tb" id="tAtk">ATK</button><button class="tb" id="tDodge">ROLL</button><button class="tb" id="tSkill">SKILL</button><button class="tb" id="tUse">USE</button><button class="tb" id="tPot">POT</button></div>
+<div class="ov on" id="title"><div class="stars"></div><div class="fall"></div>
+<div class="logo">STARFALL<small>CHRONICLE</small></div>
+<div class="menu"><button class="btn gold" id="bNew">&#9733; New Adventure</button><button class="btn" id="bCont">Continue</button><button class="btn" id="bHelp">How to Play</button><button class="btn" id="bSnd">Sound: On</button></div>
+<div class="tag">An original pixel action-RPG &middot; Made by Jaineil Rana (JaKing)</div></div>
+<div class="ov" id="modal" style="z-index:45"><div class="panel"><div class="ph"><h2 id="mT"></h2><button class="x" id="mX">X</button></div><div class="tabs" id="mTabs"></div><div class="pb" id="mB"></div></div></div>
+<div class="ov" id="help" style="z-index:46"><div class="panel" style="max-width:600px"><div class="ph"><h2>How to Play</h2><button class="x" onclick="UI.close('help')">X</button></div><div class="pb">
+<p><b>Goal:</b> recover the three Star Shards guarded in Whisperwood, the Ruins of Kharos and the Prism Deep. Follow the <span style="color:#ffd34a">gold arrow</span>.</p>
+<ul><li><kbd>WASD</kbd>/<kbd>Arrows</kbd> move &middot; <kbd>Mouse</kbd> aim</li><li><kbd>Left click</kbd>/<kbd>J</kbd> attack - tap for combos, <b>hold &amp; release</b> for your weapon's charged special</li>
+<li><kbd>Space</kbd>/<kbd>Shift</kbd> dodge-roll (invulnerable, costs stamina)</li><li><kbd>Right click</kbd>/<kbd>K</kbd> cast active skill &middot; <kbd>F</kbd>/<kbd>1</kbd> potion</li>
+<li><kbd>E</kbd> talk / interact &middot; <kbd>I</kbd> inventory &middot; <kbd>C</kbd> character &amp; skills &middot; <kbd>L</kbd> quests &middot; <kbd>Esc</kbd> pause &middot; <kbd>M</kbd> mute</li>
+<li><b>Touch:</b> left side = joystick, buttons on the right. Attacks auto-aim at the nearest foe.</li></ul>
+<p><b>Weapons:</b> Sword, Spear, Bow, Staff and Twin Daggers each have their own combo and special. Rarity runs Common &rarr; Uncommon &rarr; Rare &rarr; Epic &rarr; Legendary, with random enchantments (burn, frost, lifesteal, crit, swift, mighty).</p>
+<p><b>Red zones</b> are enemy attacks being telegraphed. Roll through them! Brann the smith upgrades (+1 to +10), reforges and fuses weapons. Drink from the town fountain to heal and save. The game also autosaves when you change areas.</p></div></div></div>
+<div class="ov" id="over"><div class="panel end" id="overB"></div></div>
+<script src="data.js"></script>
+<script src="game.js"></script>
+<script>
+'use strict';
+const $=s=>document.querySelector(s),el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!==undefined)e.innerHTML=h;return e};
+const ICONS={};const icon=it=>{const k=it.k+it.i;return ICONS[k]||(ICONS[k]=G.itemIcon(it).toDataURL())};
+const fmtT=s=>{s=Math.floor(s||0);return Math.floor(s/3600)+'h '+String(Math.floor(s/60)%60).padStart(2,'0')+'m'};
+const affTxt=a=>AFFIXES[a[0]].d.replace('{v}',a[1]);
+const UI={tab:'inv',sel:null,sel2:null,stock:[],hc:{},
+ toast(t,c='#fff'){const b=$('#toasts');const d=el('div','toast');d.textContent=t;d.style.color=c;b.prepend(d);while(b.children.length>4)b.lastChild.remove();setTimeout(()=>{d.style.transition='opacity .5s';d.style.opacity=0;setTimeout(()=>d.remove(),500)},2600)},
+ banner(t,s){const b=$('#banner');b.querySelector('b').textContent=t;b.querySelector('span').textContent=s;b.style.opacity=1;clearTimeout(this.bt);this.bt=setTimeout(()=>b.style.opacity=0,2200)},
+ bossBar(n){$('#boss').style.display=n?'block':'none';if(n)$('#bossN').textContent=n},
+ lootPop(it){if(it.r<2)return;const l=$('#loot');l.style.display='flex';l.style.borderColor=RARITY[it.r].c;l.innerHTML='<img class="ic" src="'+icon(it)+'"><div><b style="color:'+RARITY[it.r].c+'">'+G.itemName(it)+'</b><div class="mu">'+RARITY[it.r].n+' '+(it.k==='w'?CLASSES[WEAPONS[it.i][1]].n+' &middot; '+Math.round(G.wDmg(it))+' dmg':it.k==='a'?'Armor':'Trinket')+'</div></div>';clearTimeout(this.lt);this.lt=setTimeout(()=>l.style.display='none',2800)},
+ hud(){const m=G.mode,on=m!=='title';$('#hud').style.display=on?'block':'none';$('#mbtn').style.display=on?'block':'none';if(!on||!G.P)return;const S=G.S,P=G.P,D=G.D,c=this.hc;
+  const set=(k,v,f)=>{if(c[k]!==v){c[k]=v;f(v)}};
+  set('hp',Math.ceil(P.hp)+'/'+D.hp,v=>{$('#hp b').textContent=v});set('hpw',(P.hp/D.hp).toFixed(3),v=>$('#hp i').style.transform='scaleX('+v+')');
+  set('st',(P.st/D.st).toFixed(2),v=>$('#st i').style.transform='scaleX('+v+')');set('mp',(P.mp/D.mp).toFixed(2),v=>$('#mp i').style.transform='scaleX('+v+')');set('mpt',Math.floor(P.mp)+'',v=>$('#mp b').textContent=v);
+  set('xp',(S.xp/G.need(S.lvl)).toFixed(3),v=>$('#xp i').style.transform='scaleX('+v+')');set('lv',S.lvl,v=>$('#hLv').textContent=v);
+  set('g',S.gold,v=>$('#hG').innerHTML='<span style="color:#ffd34a">&#9679;</span> '+v);set('p',S.pots,v=>$('#hP').innerHTML='<span style="color:#f66">&#9829;</span> '+v);set('o',S.ore,v=>$('#hO').innerHTML='<span style="color:#9cf">&#9670;</span> '+v);
+  set('s',(S.active?{heal:'Heal',warcry:'War Cry',starfall:'Starfall'}[S.active]:'')+(S.pts||S.skp?' (C: points!)':''),v=>$('#hS').textContent=v);
+  const b=G.W.boss;if(b&&b.awake)set('b',(Math.max(0,b.hp)/b.mhp).toFixed(3),v=>$('#boss i').style.transform='scaleX('+v+')');
+  const n=m==='play'?G.nearest():null;set('hint',n?(this.touch?'USE: ':'E: ')+n.label:'',v=>{const h=$('#hint');h.style.display=v?'block':'none';h.textContent=v;$('#tUse').classList.toggle('dn',!!v)})},
+ key(e){const k=e.code,m=G.mode;
+  if(m==='dialog'){if(['Space','Enter','KeyE','KeyJ'].includes(k)){e.preventDefault();this.adv()}else if(/^Digit[1-4]$/.test(k)){const b=$('#dlg .ch').children[+k[5]-1];if(b)b.click()}return true}
+  if(m==='menu'){if(k==='Escape'||(k==='KeyI'&&this.tab==='inv')||(k==='KeyC'&&this.tab==='char')||(k==='KeyL'&&this.tab==='quest'))this.closeMenu();else if(k==='KeyI')this.menu('inv');else if(k==='KeyC')this.menu('char');else if(k==='KeyL')this.menu('quest');return true}
+  if(m==='play'){if(k==='Escape'||k==='KeyP'){this.menu('sys');return true}if(k==='KeyI'){this.menu('inv');return true}if(k==='KeyC'){this.menu('char');return true}if(k==='KeyL'){this.menu('quest');return true}}
+  if(k==='KeyM'){this.snd(!G.AU.on);return true}return false},
+ snd(on){G.setSound(on);$('#bSnd').textContent='Sound: '+(on?'On':'Off');this.toast('Sound '+(on?'on':'off'))},
+ close(id){$('#'+id).classList.remove('on')},
+ // ---- dialogue ----
+ dialog(key,onEnd){const L=typeof key==='string'?DLG[key]:key;if(!L)return;this.dq=L.map(l=>Array.isArray(l)?{s:l[0],t:l[1]}:l);this.di=0;this.dEnd=onEnd;this.prevMode=G.mode==='menu'?'play':G.mode;G.mode='dialog';$('#dlg').style.display='block';this.showLine()},
+ showLine(){const l=this.dq[this.di];$('#dlg .sp').textContent=l.s||'';$('#dlg .sp').style.display=l.s?'block':'none';const t=$('#dlg .t');t.textContent='';$('#dlg .ch').innerHTML='';$('#dlg .nx').style.display='none';this.full=l.t;this.typed=0;clearInterval(this.ti);
+  this.ti=setInterval(()=>{this.typed+=2;t.textContent=this.full.slice(0,this.typed);if(this.typed%6===0)G.sfx('tele');if(this.typed>=this.full.length)this.lineDone()},28)},
+ lineDone(){clearInterval(this.ti);$('#dlg .t').textContent=this.full;this.typed=1e9;const l=this.dq[this.di];if(l.ch){const c=$('#dlg .ch');c.innerHTML='';l.ch.forEach((ch,i)=>{const b=el('button','btn',(i+1)+'. '+ch[0]);b.onclick=e=>{e.stopPropagation();G.sfx('ui');this.endDlg(ch[2],ch[1])};c.appendChild(b)})}else $('#dlg .nx').style.display='block'},
+ adv(){if(this.typed<this.full.length){this.lineDone();return}const l=this.dq[this.di];if(l.ch)return;this.di++;if(this.di>=this.dq.length)this.endDlg();else this.showLine()},
+ endDlg(action,next){clearInterval(this.ti);$('#dlg').style.display='none';G.mode=this.prevMode==='dialog'?'play':this.prevMode;const cb=this.dEnd;this.dEnd=null;if(action)G.act(action);
+  if(next){const k=next;setTimeout(()=>this.dialog(k,cb),30);return}if(cb)cb()},
+ // ---- menus ----
+ open(title,tabs,cur,render){this.mRender=render;$('#mT').textContent=title;const T=$('#mTabs');T.innerHTML='';tabs.forEach(([id,n])=>{const b=el('button','tab'+(id===cur?' on':''),n);b.onclick=()=>{G.sfx('ui');this.tab=id;this.sel=this.sel2=null;[...T.children].forEach(x=>x.classList.remove('on'));b.classList.add('on');render(id)};T.appendChild(b)});this.tab=cur;$('#modal').classList.add('on');if(G.mode==='play')G.mode='menu';render(cur)},
+ closeMenu(){$('#modal').classList.remove('on');if(G.mode==='menu')G.mode='play';G.calc()},
+ menu(t){this.sel=this.sel2=null;this.open('Paused',[['inv','Inventory'],['char','Character'],['skill','Skills'],['quest','Quests'],['sys','System']],t,id=>this.renderMenu(id))},
+ openSave(){this.menu('sys')},
+ renderMenu(id){const B=$('#mB'),S=G.S;B.innerHTML='';G.calc();
+  if(id==='inv')this.renderInv(B);
+  else if(id==='char'){const D=G.D,w=G.getItem(S.eq.w),c=w?CLASSES[WEAPONS[w.i][1]]:CLASSES.sword;
+   B.innerHTML='<div class="grid2"><div><h4 style="color:var(--bd)">Attributes <span class="mu">('+S.pts+' points)</span></h4><div id="attrs"></div></div><div><h4 style="color:var(--bd)">Stats</h4><div class="mu" style="font-size:13px;line-height:1.8">'+
+    'Max HP <b>'+D.hp+'</b> &middot; Mana <b>'+D.mp+'</b> &middot; Stamina <b>'+D.st+'</b><br>Weapon damage <b>'+Math.round(G.wDmg(w)*D.dm)+'</b> &middot; Crit <b>'+D.crit.toFixed(1)+'%</b> (x'+D.cd+')<br>Defense <b>'+D.def.toFixed(1)+'</b> &middot; Speed <b>'+Math.round(D.spd)+'</b> &middot; Atk speed <b>'+Math.round(D.as*100)+'%</b><br>XP '+S.xp+'/'+G.need(S.lvl)+' &middot; Kills '+S.kills+' &middot; Time '+fmtT(S.time)+'</div>'+
+    '<div class="q" style="margin-top:10px"><h4>'+c.n+' special: '+c.sp+'</h4><div class="mu">'+c.spd+' Hold attack, release when the ring is full. Costs stamina.</div></div></div></div>';
+   const A=$('#attrs');[['str','STR','+4% damage'],['vit','VIT','+12 HP, +0.5 defense'],['agi','AGI','+1% speed, +0.5% crit, +4 stamina'],['int','INT','+6 mana, +4% skill & elemental power']].forEach(([k,n,d])=>{const r=el('div','srow','<b>'+n+' '+S[k]+'</b><span>'+d+'</span>');const b=el('button','btn','+');b.disabled=!S.pts;b.onclick=()=>{S[k]++;S.pts--;G.calc();G.sfx('ui');this.renderMenu('char')};r.appendChild(b);A.appendChild(r)})}
+  else if(id==='skill'){B.innerHTML='<p class="mu" style="margin-bottom:8px">Skill points: <b style="color:var(--bd)">'+S.skp+'</b> &middot; Click an owned ACTIVE skill to equip it (K / right-click / SKILL).</p>';const tr=el('div','tree');
+   BRANCHES.forEach((bn,bi)=>{const col=el('div','br','<h4>'+bn+'</h4>');SKILLS.filter(s=>s.b===bi).forEach(s=>{const own=S.skills[s.id],can=!own&&S.skp>0&&S.lvl>=s.lv&&(!s.req||S.skills[s.req]);
+     const n=el('button','node'+(own?' own':can?' can':'')+(s.a&&S.active===s.a?' act':''),'<b>'+s.n+(own?' &#10003;':'')+'</b>'+s.d+'<div class="mu">Req. Lv '+s.lv+(s.req?' &middot; after '+SKILLS.find(x=>x.id===s.req).n:'')+'</div>');
+     n.onclick=()=>{if(own){if(s.a){S.active=s.a;this.toast(s.n+' equipped','#9ef')}}else if(can){S.skills[s.id]=1;S.skp--;if(s.a&&!S.active)S.active=s.a;G.sfx('lvl');this.toast('Learned '+s.n,'#ffd34a')}else{G.sfx('fail');return}G.calc();this.renderMenu('skill')};col.appendChild(n)});tr.appendChild(col)});B.appendChild(tr)}
+  else if(id==='quest'){const m=S.main;B.innerHTML='<div class="q'+(m>=6?' done':'')+'"><h4>Main Quest &middot; '+['Prologue','Act I','Act I','Act II','Act II','Act III','Epilogue'][m]+'</h4><div>'+MAINQ[m]+'</div><div class="mu">Star Shards: '+[0,0,1,1,2,2,3][m]+'/3</div></div>';
+   for(const k in SIDEQ){const q=SIDEQ[k],s=S.sq[k];if(!s.s)continue;B.innerHTML+='<div class="q'+(s.s===3?' done':'')+'"><h4>'+q.n+(s.s===3?' (Complete)':'')+'</h4><div>'+q.d+'</div><div class="mu">'+(s.s===3?'Rewarded':'Progress '+s.c+'/'+q.need+(s.c>=q.need?' - return to '+q.giver:''))+'</div></div>'}
+   if(!Object.values(S.sq).some(s=>s.s))B.innerHTML+='<p class="mu">Townsfolk with a gold marker may have work for you.</p>'}
+  else{B.innerHTML='<h4 style="color:var(--bd)">Save game</h4><div id="sv"></div><h4 style="color:var(--bd);margin-top:10px">Load game</h4><div id="ld"></div><div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"></div>';
+   [1,2,3].forEach(i=>{const inf=G.slotInfo(i),txt='Slot '+i+' &middot; '+(inf?'Lv '+inf.lvl+' &middot; '+inf.area+' &middot; '+fmtT(inf.time):'Empty');const a=el('button','slot','&#128190; '+txt);a.onclick=()=>{if(G.save(i))this.renderMenu('sys')};$('#sv').appendChild(a);
+    if(inf){const b=el('button','slot','&#9654; '+txt);b.onclick=()=>{this.closeMenu();G.load(i)};$('#ld').appendChild(b)}});
+   const r=B.querySelector('.row');const s=el('button','btn','Sound: '+(G.AU.on?'On':'Off'));s.onclick=()=>{this.snd(!G.AU.on);this.renderMenu('sys')};const h=el('button','btn','How to play');h.onclick=()=>$('#help').classList.add('on');const q=el('button','btn','Quit to title');q.onclick=()=>{this.closeMenu();this.titleScreen()};const c=el('button','btn gold','Resume');c.onclick=()=>this.closeMenu();r.append(c,s,h,q)}},
+ itemDesc(it){const S=G.S;let h='<h3 style="color:'+RARITY[it.r].c+'">'+G.itemName(it)+'</h3><div class="mu">'+RARITY[it.r].n+' ';
+  if(it.k==='w'){const w=WEAPONS[it.i],cur=G.getItem(S.eq.w),d=Math.round(G.wDmg(it)),cd=cur?Math.round(G.wDmg(cur)):0;h+=CLASSES[w[1]].n+' &middot; item level '+it.lv+'</div><div>Damage <b>'+d+'</b> '+(cur&&cur.u!==it.u?'<span class="'+(d>=cd?'up':'dn')+'">('+(d>=cd?'+':'')+(d-cd)+')</span>':'')+'</div>';it.aff.forEach(a=>h+='<div class="aff">&#10022; '+AFFIXES[a[0]].n+': '+affTxt(a)+'</div>');if(it.r===4)h+='<div class="aff" style="color:#ffa53a">&#9733; Starborn: critical hits trigger a star burst</div>';h+='<div class="mu">Special: '+CLASSES[w[1]].sp+'</div>'}
+  else if(it.k==='a'){const a=ARMORS[it.i];h+='Armor</div><div>Defense <b>'+(a[2]*RARITY[it.r].m).toFixed(1)+'</b> &middot; HP +'+a[3]+'</div>'+(a[4]?'<div class="aff">'+a[4].replace('spd:','Move speed ').replace('mp:','Mana +').replace('all:','All stats +')+'%</div>'.replace('Mana +25%','Mana +25'):'')}
+  else h+='Trinket</div><div class="aff">'+TRINKETS[it.i][3]+'</div>';return h},
+ renderInv(B){const S=G.S;B.innerHTML='<div class="mu" style="margin-bottom:6px">'+S.items.length+'/48 items &middot; tap an item to inspect</div>';const g=el('div','inv');
+  const eq=Object.values(S.eq);S.items.slice().sort((a,b)=>(eq.includes(b.u)-eq.includes(a.u))||('wat'.indexOf(a.k)-'wat'.indexOf(b.k))||b.r-a.r).forEach(it=>{const c=el('div','cell'+(this.sel===it.u?' sel':''),'<img src="'+icon(it)+'" alt="">'+(eq.includes(it.u)?'<span class="e">E</span>':'')+(it.p?'<span class="p">+'+it.p+'</span>':''));c.style.borderColor=RARITY[it.r].c;c.onclick=()=>{this.sel=it.u;G.sfx('ui');this.renderInv(B)};g.appendChild(c)});B.appendChild(g);
+  const it=G.getItem(this.sel),d=el('div','det');if(!it){d.innerHTML='<span class="mu">Equipped: '+['w','a','t'].map(k=>{const x=G.getItem(S.eq[k]);return x?'<b style="color:'+RARITY[x.r].c+'">'+G.itemName(x)+'</b>':'-'}).join(' / ')+'</span>'}else{d.innerHTML=this.itemDesc(it);const r=el('div','row');
+   const isEq=eq.includes(it.u);const e=el('button','btn gold',isEq?'Equipped':'Equip');e.disabled=isEq;e.onclick=()=>{S.eq[it.k]=it.u;G.calc();G.sfx('pick');this.toast('Equipped '+G.itemName(it),RARITY[it.r].c);this.renderInv(B)};r.appendChild(e);
+   if(it.k==='t'&&isEq){const u=el('button','btn','Unequip');u.onclick=()=>{delete S.eq.t;G.calc();this.renderInv(B)};r.appendChild(u)}
+   if(!isEq){const x=el('button','btn','Discard');x.onclick=()=>{S.items.splice(S.items.indexOf(it),1);this.sel=null;this.renderInv(B)};r.appendChild(x)}d.appendChild(r)}B.appendChild(d)},
+ // ---- blacksmith ----
+ smith(){this.sel=this.sel2=null;this.open('Brann\'s Forge',[['up','Upgrade'],['ref','Reforge'],['fuse','Fuse']],'up',id=>this.renderSmith(id))},
+ upCost(it){const p=it.p;return{g:Math.round(24*Math.pow(p+1,1.5)*(1+it.r*.3)),o:Math.ceil((p+1)/2),ch:p<5?100:[90,80,70,60,50][p-5]}},
+ renderSmith(id){const B=$('#mB'),S=G.S;B.innerHTML='<div class="mu" style="margin-bottom:6px">Gold <b style="color:#ffd34a">'+S.gold+'</b> &middot; Star Ore <b style="color:#9cf">'+S.ore+'</b></div>';
+  const ws=S.items.filter(i=>i.k==='w'&&(id!=='ref'||i.r>0));const g=el('div','inv');
+  ws.sort((a,b)=>b.r-a.r).forEach(it=>{const s=this.sel===it.u||this.sel2===it.u;const c=el('div','cell'+(s?' sel':''),'<img src="'+icon(it)+'">'+(it.u===S.eq.w?'<span class="e">E</span>':'')+(it.p?'<span class="p">+'+it.p+'</span>':''));c.style.borderColor=RARITY[it.r].c;
+   c.onclick=()=>{G.sfx('ui');if(id==='fuse'&&this.sel&&this.sel!==it.u&&!this.sel2)this.sel2=it.u;else{this.sel=it.u;this.sel2=null}this.renderSmith(id)};g.appendChild(c)});
+  if(!ws.length)g.innerHTML='<span class="mu">No suitable weapons.</span>';B.appendChild(g);const d=el('div','det'),it=G.getItem(this.sel);
+  if(id==='up'){if(!it)d.innerHTML='<span class="mu">Select a weapon to upgrade (max +10). Each level adds +10% damage.</span>';else{const c=this.upCost(it);d.innerHTML=this.itemDesc(it)+(it.p>=10?'<p class="up">Maximum level reached!</p>':'<p style="margin-top:6px">+'+it.p+' &rarr; <b>+'+(it.p+1)+'</b> &middot; '+c.g+' gold, '+c.o+' ore &middot; success '+c.ch+'%</p>');
+    if(it.p<10){const b=el('button','btn gold','Hammer it!');b.disabled=S.gold<c.g||S.ore<c.o;b.onclick=()=>{S.gold-=c.g;S.ore-=c.o;if(Math.random()*100<c.ch){it.p++;G.sfx('forge');this.toast(G.itemName(it)+' - success!','#7f7')}else{G.sfx('fail');this.toast('The metal resists... upgrade failed.','#f77')}G.calc();this.renderSmith(id)};d.appendChild(b)}}}
+  else if(id==='ref'){if(!it)d.innerHTML='<span class="mu">Select an Uncommon or better weapon to reroll its enchantments.</span>';else{const cost=60*(it.r+1);d.innerHTML=this.itemDesc(it)+'<p style="margin-top:6px">Reforge cost: '+cost+' gold</p>';const b=el('button','btn gold','Reforge');b.disabled=S.gold<cost;b.onclick=()=>{S.gold-=cost;G.rollAff(it);G.sfx('forge');this.toast('Enchantments rerolled','#9ef');G.calc();this.renderSmith(id)};d.appendChild(b)}}
+  else{const b2=G.getItem(this.sel2);if(!it)d.innerHTML='<span class="mu">Pick two weapons of the same rarity (not Legendary, not equipped). They fuse into a random weapon of the next rarity, keeping the best item level and class of the first.</span>';
+   else if(!b2)d.innerHTML=this.itemDesc(it)+'<p class="mu">Now pick a second '+RARITY[it.r].n+' weapon.</p>';
+   else{const cost=100*(it.r+1),ok=it.r===b2.r&&it.r<4&&it.u!==S.eq.w&&b2.u!==S.eq.w;d.innerHTML='<p><b style="color:'+RARITY[it.r].c+'">'+G.itemName(it)+'</b> + <b style="color:'+RARITY[b2.r].c+'">'+G.itemName(b2)+'</b> &rarr; <b style="color:'+(RARITY[it.r+1]||RARITY[4]).c+'">random '+(RARITY[it.r+1]||RARITY[4]).n+' '+CLASSES[WEAPONS[it.i][1]].n+'</b></p><p class="mu">'+(ok?'Cost: '+cost+' gold':'Both must share a rarity below Legendary and not be equipped.')+'</p>';
+    const b=el('button','btn gold','Fuse!');b.disabled=!ok||S.gold<cost;b.onclick=()=>{S.gold-=cost;S.items=S.items.filter(x=>x!==it&&x!==b2);const n=G.randWeapon(it.r+1,Math.max(it.lv,b2.lv),WEAPONS[it.i][1]);n.p=Math.floor(Math.max(it.p,b2.p)/2);S.items.push(n);this.sel=n.u;this.sel2=null;G.sfx('chest');this.toast('Forged '+RARITY[n.r].n+' '+G.itemName(n)+'!',RARITY[n.r].c);this.renderSmith('up');[...$('#mTabs').children].forEach((x,i)=>x.classList.toggle('on',i===0))};d.appendChild(b)}}
+  B.appendChild(d)},
+ // ---- shop ----
+ restock(){if(!G.S)return;const t=G.S.main>=5?2:G.S.main>=3?1:0,lv=[2,6,11][t];this.stock=[];for(let i=0;i<4;i++)this.stock.push(G.randWeapon(Math.min(3,ri(0,1)+t),lv));this.stock.push(G.randGear(Math.min(3,t+ri(0,1))),G.randGear(Math.min(3,t)))},
+ shop(){this.open('Sela\'s Wares',[['buy','Buy'],['sell','Sell']],'buy',id=>this.renderShop(id))},
+ renderShop(id){const B=$('#mB'),S=G.S;B.innerHTML='<div class="mu" style="margin-bottom:6px">Gold <b style="color:#ffd34a">'+S.gold+'</b></div>';
+  const row=(img,name,sub,price,lbl,fn)=>{const r=el('div','shopr',img+'<div><b>'+name+'</b><div class="mu">'+sub+'</div></div>');const b=el('button','btn'+(lbl==='Buy'?' gold':''),lbl+' '+price+'g');b.disabled=lbl==='Buy'&&S.gold<price;b.onclick=()=>{fn();G.sfx('coin');this.renderShop(id)};r.appendChild(b);B.appendChild(r)};
+  if(id==='buy'){row('<span style="font-size:22px;color:#f66">&#9829;</span>','Healing Potion','Restores 45% HP (you have '+S.pots+')',25,'Buy',()=>{S.gold-=25;S.pots++});row('<span style="font-size:22px;color:#9cf">&#9670;</span>','Star Ore','Used by Brann for upgrades (you have '+S.ore+')',45,'Buy',()=>{S.gold-=45;S.ore++});
+   this.stock.forEach(it=>{const p=Math.round(G.itemValue(it)*2.2);row('<img class="ic" src="'+icon(it)+'">','<span style="color:'+RARITY[it.r].c+'">'+G.itemName(it)+'</span>',RARITY[it.r].n+' '+(it.k==='w'?CLASSES[WEAPONS[it.i][1]].n+' &middot; '+Math.round(G.wDmg(it))+' dmg'+(it.aff.length?' &middot; '+it.aff.map(a=>AFFIXES[a[0]].n).join(', '):''):it.k==='a'?'Armor':TRINKETS[it.i][3]),p,'Buy',()=>{if(G.addItem(it)){S.gold-=p;this.stock.splice(this.stock.indexOf(it),1);this.toast('Bought '+G.itemName(it),RARITY[it.r].c)}})})}
+  else{const eq=Object.values(S.eq),L=S.items.filter(i=>!eq.includes(i.u));if(!L.length)B.innerHTML+='<p class="mu">Nothing to sell (equipped items are hidden).</p>';L.sort((a,b)=>a.r-b.r).forEach(it=>{const p=Math.round(G.itemValue(it)*.6);row('<img class="ic" src="'+icon(it)+'">','<span style="color:'+RARITY[it.r].c+'">'+G.itemName(it)+'</span>',RARITY[it.r].n+(it.k==='w'?' &middot; '+Math.round(G.wDmg(it))+' dmg':''),p,'Sell',()=>{S.gold+=p;S.items.splice(S.items.indexOf(it),1)})})}},
+ // ---- screens ----
+ slots(isNew){this.open(isNew?'Choose a save slot':'Continue',[['s','Slots']],'s',()=>{const B=$('#mB');B.innerHTML='';[1,2,3].forEach(i=>{const inf=G.slotInfo(i);const b=el('button','slot','<b style="color:var(--bd)">Slot '+i+'</b><span class="mu">'+(inf?'Lv '+inf.lvl+' &middot; '+inf.area+' &middot; '+fmtT(inf.time)+' &middot; '+inf.gold+' gold':'Empty')+'</span>');b.disabled=!isNew&&!inf;if(b.disabled)b.style.opacity=.4;
+   b.onclick=()=>{if(isNew&&inf&&!confirm('Overwrite slot '+i+'?'))return;$('#modal').classList.remove('on');$('#title').classList.remove('on');if(isNew){G.newGame(i);setTimeout(()=>this.dialog('intro',()=>this.toast('Follow the gold arrow to Elder Oren','#ffd34a')),400)}else G.load(i)};B.appendChild(b)})})},
+ titleScreen(){G.mode='title';$('#bCont').disabled=![1,2,3].some(i=>G.slotInfo(i));$('#title').classList.add('on');$('#over').classList.remove('on');$('#dlg').style.display='none';this.bossBar(null);G.music('title')},
+ dead(){const o=$('#overB');o.innerHTML='<h1 style="color:#ff7a8a">You have fallen</h1><p class="mu">The starlight is not done with you yet.</p><div class="menu" style="margin:16px auto 0"><button class="btn gold" id="rise">Rise again in Lanternreach</button><button class="btn" id="dl">Load a save</button></div>';$('#over').classList.add('on');
+  $('#rise').onclick=()=>{$('#over').classList.remove('on');G.respawn()};$('#dl').onclick=()=>{$('#over').classList.remove('on');G.mode='title';$('#title').classList.add('on');this.slots(false)}},
+ ending(){const S=G.S,a=S.ending!=='endB';const o=$('#overB');o.innerHTML='<h1>'+(a?'The Star Returns Home':'The Light Below')+'</h1><p>'+(a?'Vael climbs back into the night sky, whole again. Lanternreach looks up, and the sky looks back.':'Vael sleeps in the crystal heart of the Prism Deep, and Lanternreach glows warm forever.')+'</p><p class="mu">Level '+S.lvl+' &middot; '+S.kills+' foes defeated &middot; play time '+fmtT(S.time)+'</p><p style="color:var(--bd)">THE END</p><p class="mu" style="font-size:12px">Starfall Chronicle &middot; design, code, art &amp; music by Jaineil Rana (JaKing) &middot; JaiGod</p><div class="menu" style="margin:14px auto 0"><button class="btn gold" id="eC">Keep exploring</button><button class="btn" id="eT">Title screen</button></div>';
+  $('#over').classList.add('on');G.autosave();$('#eC').onclick=()=>{$('#over').classList.remove('on');G.mode='play';G.music('cave')};$('#eT').onclick=()=>this.titleScreen()}};
+window.UI=UI;
+$('#bNew').onclick=()=>{G.auInit();G.sfx('ui');UI.slots(true)};$('#bCont').onclick=()=>{G.auInit();G.sfx('ui');UI.slots(false)};$('#bHelp').onclick=()=>{G.auInit();$('#help').classList.add('on')};$('#bSnd').onclick=()=>{G.auInit();UI.snd(!G.AU.on)};
+$('#bSnd').textContent='Sound: '+(G.AU.on?'On':'Off');$('#mX').onclick=()=>{G.sfx('ui');UI.closeMenu();if(G.mode==='title')$('#title').classList.add('on')};
+$('#mbtn').onclick=()=>{if(G.mode==='play')UI.menu('sys');else if(G.mode==='menu')UI.closeMenu()};$('#dlg').onclick=()=>UI.adv();
+if(![1,2,3].some(i=>G.slotInfo(i)))$('#bCont').disabled=true;
+G.music('title');
+// ---- touch ----
+(function(){const t=$('#touch'),z=$('#stickz'),st=$('#stick'),kn=$('#knob');let id=null,ox=0,oy=0;
+ const show=()=>{if(UI.touch)return;UI.touch=true;G.TIN.active=true;t.style.display='block'};addEventListener('touchstart',show,{once:true,passive:true});if(matchMedia('(pointer:coarse)').matches)show();
+ setInterval(()=>{t.style.visibility=G.mode==='play'?'visible':'hidden'},200);
+ z.addEventListener('pointerdown',e=>{id=e.pointerId;ox=e.clientX;oy=e.clientY;const r=z.getBoundingClientRect();st.style.left=(ox-r.left)+'px';st.style.top=(oy-r.top)+'px';st.style.display='block';z.setPointerCapture(id);G.auInit()});
+ z.addEventListener('pointermove',e=>{if(e.pointerId!==id)return;let dx=e.clientX-ox,dy=e.clientY-oy;const l=Math.hypot(dx,dy),m=48;if(l>m){dx=dx/l*m;dy=dy/l*m}kn.style.transform='translate('+dx+'px,'+dy+'px)';const n=Math.min(1,l/m);G.TIN.x=l>8?dx/m:0;G.TIN.y=l>8?dy/m:0;if(n<.2){G.TIN.x=G.TIN.y=0}});
+ const end=e=>{if(e.pointerId!==id)return;id=null;G.TIN.x=G.TIN.y=0;kn.style.transform='';st.style.display='none'};z.addEventListener('pointerup',end);z.addEventListener('pointercancel',end);
+ const btn=(s,dn,up)=>{const b=$(s);b.addEventListener('pointerdown',e=>{e.preventDefault();G.auInit();b.classList.add('dn');if(G.mode==='dialog')UI.adv();else dn()});const u=e=>{b.classList.remove('dn');up&&up()};b.addEventListener('pointerup',u);b.addEventListener('pointercancel',u);b.addEventListener('pointerleave',u)};
+ btn('#tAtk',()=>G.attackDown(),()=>G.attackUp());btn('#tDodge',()=>G.dodge());btn('#tSkill',()=>G.castSkill());btn('#tUse',()=>G.interact());btn('#tPot',()=>G.usePotion())})();
+</script>
+</body>
+</html>
